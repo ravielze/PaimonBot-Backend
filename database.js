@@ -1,4 +1,8 @@
 const { Pool } = require("pg");
+const { convertDataTime } = require("./data");
+const bcrypt = require("bcrypt");
+require("dotenv").config();
+
 const connString =
     "tcp://" +
     process.env.PGUSER +
@@ -23,21 +27,27 @@ pool.connect((err) => {
     }
 });
 
-/**
- * IDTASK (INT) | Code VARCHAR(6) | type VARCHAR(16) | Note VARCHAR(1024) | deadline (DATE) | Done (BOOL)
- */
-const createTaskTable = () => {
+const createUserTable = () => {
     var table = `
-        CREATE TABLE IF NOT EXISTS "task" (
-        "task_id" SERIAL PRIMARY KEY,
-        "code" VARCHAR(6) DEFAULT '',
-        "type" VARCHAR(8) DEFAULT '',
-        "note" VARCHAR(1024) DEFAULT '',
-        "deadline" DATE DEFAULT NOW(),
-        "done" BOOLEAN DEFAULT FALSE
-        )`;
-    pool.query(table)
-        .then((res) => console.log(res))
+    CREATE TABLE IF NOT EXISTS "user" (
+        "user_id" SERIAL PRIMARY KEY,
+        "username" VARCHAR(32) UNIQUE NOT NULL,
+        "password" VARCHAR(128) NOT NULL
+    )`;
+    pool.query(table).catch((err) =>
+        setImmediate(() => {
+            throw err;
+        })
+    );
+};
+
+const getUserByUsername = (username) => {
+    var query = `
+    SELECT * from "user"
+    WHERE username = $1`;
+    return pool
+        .query(query, [username])
+        .then((res) => res.rows[0])
         .catch((err) =>
             setImmediate(() => {
                 throw err;
@@ -45,51 +55,163 @@ const createTaskTable = () => {
         );
 };
 
-const insertTask = (data) => {
+const isUsernameExist = (username) => {
     var query = `
-    INSERT INTO "task"
-      (code, type, note, deadline)
-      VALUES
-      ($1, $2, $3, $4)`;
-    pool.query(query, [data.code, data.type, data.note, data.deadline]).catch(
-        (err) =>
+    SELECT * from "user"
+    WHERE username = $1`;
+    return pool
+        .query(query, [username])
+        .then((res) => {
+            return res.rowCount != 0;
+        })
+        .catch((err) =>
             setImmediate(() => {
                 throw err;
             })
+        );
+};
+
+const createUser = async (username, password) => {
+    const salt = await bcrypt.genSalt(10);
+    var hashedPassword = await bcrypt.hash(password, salt);
+    var query = `
+    INSERT INTO "user"
+      (username, password)
+      VALUES
+      ($1, $2) RETURNING user_id`;
+    return pool
+        .query(query, [username, hashedPassword])
+        .then((res) => res.rows[0].user_id)
+        .catch((err) =>
+            setImmediate(() => {
+                throw err;
+            })
+        );
+};
+
+/**
+ * IDTASK (INT) | Code VARCHAR(6) | type VARCHAR(16) | Note VARCHAR(1024) | deadline (DATE) | Done (BOOL)
+ */
+const createTaskTable = () => {
+    var table = `
+        CREATE TABLE IF NOT EXISTS "task" (
+        "user_id" INT,
+        "task_id" SERIAL,
+        "code" VARCHAR(6) DEFAULT '',
+        "type" VARCHAR(12) DEFAULT '',
+        "note" VARCHAR(1024) DEFAULT '',
+        "deadline" DATE DEFAULT NOW(),
+        "done" BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY(user_id) REFERENCES "user" (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        PRIMARY KEY (user_id, task_id)
+        )`;
+    pool.query(table).catch((err) =>
+        setImmediate(() => {
+            throw err;
+        })
     );
 };
 
-const deleteTask = (idtask) => {
+const insertTask = (data, userId) => {
+    var query = `
+    INSERT INTO "task"
+      (user_id, code, type, note, deadline)
+      VALUES
+      ($1, $2, $3, $4, $5)`;
+    pool.query(query, [
+        userId,
+        data.code,
+        data.type,
+        data.note,
+        data.deadline,
+    ]).catch((err) =>
+        setImmediate(() => {
+            throw err;
+        })
+    );
+};
+
+const removeTask = (userId, idtask) => {
     var query = `
     UPDATE "task" SET done = TRUE
     WHERE
-    task_id = $1`;
-    pool.query(query, [idtask]).catch((err) =>
-        setImmediate(() => {
-            throw err;
-        })
-    );
+    task_id = $1 AND user_id = $2 AND done = FALSE`;
+    return pool
+        .query(query, [idtask, userId])
+        .then((res) => res.rowCount != 0)
+        .catch((err) =>
+            setImmediate(() => {
+                throw err;
+            })
+        );
 };
 
-const updateTask = (idtask, deadline) => {
+const updateTask = (idtask, deadline, userId) => {
     var query = `
     UPDATE "task" SET deadline = $2
     WHERE
-    task_id = $1`;
-    pool.query(query, [idtask, deadline]).catch((err) =>
-        setImmediate(() => {
-            throw err;
-        })
-    );
+    task_id = $1 AND user_id = $3`;
+    return pool
+        .query(query, [idtask, deadline, userId])
+        .then((res) => res.rowCount != 0)
+        .catch((err) =>
+            setImmediate(() => {
+                throw err;
+            })
+        );
 };
 
-const getTaskByCode = (code) => {
+const getTasksByCode = (code, userId) => {
     var query = `
     SELECT * from "task"
-    WHERE code = $1`;
+    WHERE code = $1 AND user_id = $2 AND done = FALSE`;
     return pool
-        .query(query, [query])
-        .then((res) => res.rows)
+        .query(query, [code, userId])
+        .then((res) => {
+            res.rows.map((x) => convertDataTime(x));
+            return res.rows;
+        })
+        .catch((err) =>
+            setImmediate(() => {
+                throw err;
+            })
+        );
+};
+
+const getTasks = (userId) => {
+    var query = `
+    SELECT * from "task"
+    WHERE done = FALSE AND
+    deadline >= now() AND
+    user_id = $1
+    ORDER BY deadline ASC`;
+    return pool
+        .query(query, [userId])
+        .then((res) => {
+            res.rows.map((x) => convertDataTime(x));
+            return res.rows;
+        })
+        .catch((err) =>
+            setImmediate(() => {
+                throw err;
+            })
+        );
+};
+
+const getTasksByDate = (date, userId) => {
+    var query = `
+    SELECT * from "task"
+    WHERE done = FALSE AND
+    deadline >= now() AND
+    deadline <= to_date($1, 'dd-mm-yyyy')
+    AND user_id = $2
+    ORDER BY deadline ASC`;
+    return pool
+        .query(query, [date, userId])
+        .then((res) => {
+            res.rows.map((x) => convertDataTime(x));
+            return res.rows;
+        })
         .catch((err) =>
             setImmediate(() => {
                 throw err;
@@ -100,8 +222,13 @@ const getTaskByCode = (code) => {
 module.exports = {
     createTaskTable,
     insertTask,
-    emptyData,
-    deleteTask,
+    removeTask,
     updateTask,
-    getTaskByCode,
+    getTasksByCode,
+    getTasks,
+    getTasksByDate,
+    createUserTable,
+    createUser,
+    getUserByUsername,
+    isUsernameExist,
 };

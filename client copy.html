@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>Socket io client</title>
+        <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io("http://localhost:3000");
+            // use your socket
+            socket.emit("login", {
+                username: "laladidi",
+                password: "test1234",
+            });
+
+            function test() {
+                socket.emit("create_task", {
+                    code: "IF1213",
+                    note: "apaya",
+                    deadline: "30-04-2021",
+                    type: "PRAKTIKUM",
+                });
+            }
+            function test2() {
+                socket.emit("delete_task", 2);
+            }
+        </script>
+    </head>
+    <body></body>
+</html>

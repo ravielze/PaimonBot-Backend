@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <title>Socket io client</title>
+        <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io("http://localhost:3000");
+            // use your socket
+            socket.emit("login", {
+                username: "laladidi",
+                password: "test12345",
+            });
+        </script>
+    </head>
+    <body></body>
+</html>
