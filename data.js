@@ -1,12 +1,3 @@
-const emptyData = () => {
-    return {
-        code: "",
-        type: "",
-        note: "",
-        deadline: "",
-    };
-};
-
 const createData = (code, type, note, deadline) => {
     return {
         code,
@@ -26,15 +17,24 @@ const convertTime = (date) => {
     return dateFormat(date, "dd-mm-yyyy");
 };
 
-module.exports = { emptyData, createData, convertDataTime, convertTime };
+const currentTime = () => {
+    return dateFormat(new Date(), "dd-mm-yyyy");
+};
+
+module.exports = {
+    createData,
+    convertDataTime,
+    convertTime,
+    currentTime,
+};
 
 /**
  * type: 1
- * data: {
- * Code: "IF2121",
- * Type: "TUBES",
- * Note: "Bot reminder tugas",
- * Duedate: "27-04-2021"
+ * body: {
+ * code: "IF2121",
+ * type: "TUBES",
+ * note: "Bot reminder tugas",
+ * deadline: "27-04-2021"
  * }
  *
  * type: 2
@@ -42,12 +42,13 @@ module.exports = { emptyData, createData, convertDataTime, convertTime };
  * fromDate: (defaultnya now) "01-01-2000"
  * toDate: "31-12-2001"
  * durasi: (opsional soalnya fungsi gw ga nerima nowdate, basically fromDate = now, toDate = now + durasi hari)
- * types: ["Hari"]
+ * types: ["Tubes", "Kuis"] (buat filter)
  * }
  *
  * type: 3
  * body: {
  * Code: "IF2211"
+ * types: ["Tucil", "Praktikum"] (filter)
  * }
  *
  * type: 4
@@ -57,7 +58,10 @@ module.exports = { emptyData, createData, convertDataTime, convertTime };
  * }
  *
  * type: 5
- * body:
+ * body: [69, 420] (ID2 tugas yg kelar dikerjain)
  *
+ * type: 6 (help)
+ *
+ * type: 0 (error)
  *
  */

@@ -1,3 +1,5 @@
+const { currentTime } = require("./data");
+
 const borderFunction = (string) => {
     var bf = [0];
     var j = 0;
@@ -45,27 +47,71 @@ const findOccurence = (pattern, text) => {
     }
     return toReturn;
 };
-/*
-console.log(borderFunction("AAACAAAAAC"));
-console.log(borderFunction("abaAba"));
 
-console.log(findOccurence("tes", "testistes"));
-console.log(
-    findOccurence(
-        "DeaDLiNe",
-        "Halo pak bos deadline STIMA 2 hari lagi nih, cek typo dedline deadline"
-    )
-);
-*/
+const levenshteinDistance = (string1, string2) => {
+    //Solusi DP bottom up, menyimpan dalam array
+    string1 = string1.toLowerCase();
+    string2 = string2.toLowerCase();
+    var DP = [];
+    for (var i = 0; i <= string1.length; i++) {
+        DP.push([]);
+        for (var j = 0; j <= string2.length; j++) {
+            DP[i].push(i + j);
+        }
+    }
+    for (var i = 1; i <= string1.length; i++) {
+        for (var j = 1; j <= string2.length; j++) {
+            DP[i][j] = Math.min(DP[i - 1][j], DP[i][j - 1]) + 1;
+            if (string1[i - 1] == string2[j - 1]) {
+                DP[i][j] = Math.min(DP[i][j], DP[i - 1][j - 1]);
+            } else {
+                DP[i][j] = Math.min(DP[i][j], DP[i - 1][j - 1] + 1);
+            }
+        }
+    }
+    return DP[string1.length][string2.length];
+};
+
+//Bernilai 0-1, semakin besar semakin mirip
+const tingkatKemiripan = (str1, str2) => {
+    var mean = (str1.length + str2.length) / 2;
+    return 1 - levenshteinDistance(str1, str2) / mean;
+};
 
 const taskType = ["Kuis", "Ujian", "Tucil", "Tubes", "Praktikum"];
-const process = (text) => {
+const keyword = ["deadline", "kapan", "dimajukan", "diundur", "kelar", "help"];
+
+const convertString = (text) => {
+    var types = [];
+    for (var i = 0; i < 5; i++) {
+        if (findOccurence(taskType[i], text).length > 0) {
+            types.push(taskType[i]);
+        }
+    }
     /*
 1. Nambah tugas
 Keyword: -
 Komponen: Type, Code, Note, Duedate
 Type: Kuis, Ujian, Tucil, Tubes, Praktikum
 */
+    if (types.length > 0) {
+        if (/.*[A-Z]{2}\d{2}.*\d{2}-\d{2}-\d{4}/.test(text)) {
+            var date = /\d{2}-\d{2}-\d{4}/.exec(text);
+            var code = /[A-Z]{2}\d{4}/.exec(text);
+            //Cari index untuk ambil note
+            var fromIdx = code.index + 7;
+            var toIdx = date.index - 1;
+            return {
+                type: 1,
+                body: {
+                    type: types[0],
+                    code: code[0],
+                    deadline: date[0],
+                    note: text.slice(fromIdx, toIdx),
+                },
+            };
+        }
+    }
 
     /*
 2. Daftar deadline
@@ -75,34 +121,32 @@ Durasi: x hari, x minggu
 */
     if (findOccurence("deadline", text).length > 0) {
         var date = text.match(/\d{2}-\d{2}-\d{4}/g);
-        var types = [];
-        for (var i = 0; i < 5; i++) {
-            if (findOccurence(taskType[i], text).length > 0) {
-                types.push(taskType[i]);
-            }
-        }
-        if (date.length > 1) {
-            return {
-                type: 2,
-                body: {
-                    fromDate: date[0],
-                    toDate: date[1],
-                    type: types,
-                },
-            };
-        } else if (date.length == 1) {
-            return {
-                type: 2,
-                body: {
-                    toDate: date[0],
-                    type: types,
-                },
-            };
-        } else {
-            if (/hari ini/i.test(text)) {
+        if (date) {
+            if (date.length == 1) {
                 return {
                     type: 2,
                     body: {
+                        fromDate: currentTime(),
+                        toDate: date[0],
+                        type: types,
+                    },
+                };
+            } else {
+                return {
+                    type: 2,
+                    body: {
+                        fromDate: date[0],
+                        toDate: date[1],
+                        type: types,
+                    },
+                };
+            }
+        } else {
+            if (/hari ini/i.test(text)) {
+                return {
+                    type: 7,
+                    body: {
+                        fromDate: currentTime(),
                         duration: 0,
                         type: types,
                     },
@@ -110,13 +154,22 @@ Durasi: x hari, x minggu
             }
             var days = /\d* hari/i.exec(text);
             var weeks = /\d* minggu/i.exec(text);
-            if (days.length > 0 || weeks.length > 0) {
+            if (days) {
                 return {
-                    type: 2,
+                    type: 7,
                     body: {
-                        duration:
-                            parseInt(days[0].split(" ")[0]) +
-                            7 * parseInt(weeks[0].split(" ")[0]),
+                        fromDate: currentTime(),
+                        duration: parseInt(days[0].split(" ")[0]),
+                        type: types,
+                    },
+                };
+            }
+            if (weeks) {
+                return {
+                    type: 7,
+                    body: {
+                        fromDate: currentTime(),
+                        duration: 7 * parseInt(weeks[0].split(" ")[0]),
                         type: types,
                     },
                 };
@@ -126,15 +179,18 @@ Durasi: x hari, x minggu
 
     /*
 3. Tampil deadline
-Keyword: kapan
+Keyword: kapan, type
 Komponen: Code
 */
     if (findOccurence("kapan", text).length > 0) {
         var code = text.match(/[A-Z]{2}\d{4}/g);
-        if (code.length > 1) {
+        if (code) {
             return {
                 type: 3,
-                body: { Code: code[0] },
+                body: {
+                    code: code[0],
+                    type: types,
+                },
             };
         }
     }
@@ -154,7 +210,7 @@ Komponen: Date, ID Task
             return {
                 type: 4,
                 body: {
-                    IDTASK: parseInt(task[0].split(" ")[1]),
+                    taskId: parseInt(task[0].split(" ")[1]),
                     deadline: date[0],
                 },
             };
@@ -166,14 +222,14 @@ Komponen: Date, ID Task
 Keyword: kelar ngerjain, task
 Komponen: ID Task
 */
-    if (findOccurence("kelar ngerjain", text).length > 0) {
-        var taskIDs = text.match(/task \d*/g);
-        var IDs = [];
-        for (var i = 0; i < taskIDs.length; i++) {
-            console.log(taskIDs[i]);
-            IDs.push(parseInt(taskIDs[i].split(" ")[1]));
-        }
-        return { type: 5, body: IDs };
+    if (findOccurence("kelar", text).length > 0) {
+        var taskID = /task \d*/i.exec(text);
+        return {
+            type: 5,
+            body: {
+                taskId: parseInt(taskID[0].split(" ")[1]),
+            },
+        };
     }
 
     /*
@@ -184,13 +240,64 @@ Keyword: Help
         return { type: 6 };
     }
 
+    //At this point tidak ada metode yg cocok, akan dicoba cek typo
+    var wordText = text.split(" ");
+    var typo = [];
+    var fromIdx = 0;
+    var tk = 0.0;
+    for (var i = 0; i < wordText.length; i++) {
+        for (var j = 0; j < keyword.length; j++) {
+            tk = tingkatKemiripan(wordText[i], keyword[j]);
+            if (tk > 0.75) {
+                typo.push([-tk, fromIdx, fromIdx + wordText[i].length, j]);
+            }
+        }
+        fromIdx += wordText[i].length + 1;
+    }
+    typo.sort();
+
+    var suggestion = [];
+    for (var i = 0; i < typo.length && i < 3; i++) {
+        suggestion.push({
+            //Siapa tau butuh index buat font italic
+            from: typo[i][1],
+            to: typo[i][2],
+            text:
+                text.slice(0, typo[i][1]) +
+                keyword[typo[i][3]] +
+                text.slice(typo[i][2], text.length),
+            tingkatKemiripan: -typo[i][0],
+        });
+    }
+
+    if (suggestion.length > 0) {
+        return {
+            type: -1,
+            body: {
+                suggestions: suggestion,
+            },
+        };
+    }
+
     return { type: 0 };
 };
 
 console.log(
-    process(
+    convertString("Pakbos, ada tubes IF2240 HAloheloBandung 22-04-2021")
+);
+console.log(convertString("Hari ini deadline apaaja bos?"));
+console.log(convertString("Coy IF2211 deadlinenya kapan aja seh?"));
+console.log(
+    convertString(
         "Video OS yaitu task 5 dimajukan jadi 01-05-2021 coba anjing minta ditabok"
     )
+);
+console.log(convertString("Gw udh kelar ngerjain task 60 neh"));
+console.log(convertString("anjir bang heLp"));
+console.log(
+    convertString(
+        "Bang bot dimajokan eaaa pengen ngetes keler lu bisa autocorrect ga halp"
+    ).body.suggestions
 );
 
 /**
@@ -198,3 +305,5 @@ console.log(
  */
 
 //
+
+module.exports = { convertString };

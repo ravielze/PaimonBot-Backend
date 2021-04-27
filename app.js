@@ -1,8 +1,8 @@
 const express = require("express");
-const { createData } = require("./data");
+const { convertString } = require("./algorithm");
 const { createTaskTable, createUserTable } = require("./database");
 require("dotenv").config();
-const { login, register, createTask, deleteTask } = require("./usecase");
+const { login, register, runUsecase, sendTask } = require("./usecase");
 
 var app = express();
 var server = app.listen(3000);
@@ -22,7 +22,7 @@ io.on("connection", function (socket) {
     );
     socket.on("disconnect", () => {
         usercount--;
-        if (userId != -1) {
+        if (userId == -1) {
             console.log(
                 `Anonymous User Disconnected\nCurrent User Connected: ${usercount}`
             );
@@ -39,6 +39,12 @@ io.on("connection", function (socket) {
             userId = loginUserId;
             socket.emit("login_success");
             console.log(`User ${username} has logged in`);
+            socket.emit("message", {
+                message: `Selamat datang kembali ${username}!`,
+            });
+            var result = await sendTask();
+            socket.emit("message", { message: result });
+            socket.emit("sticker", 5);
             return;
         }
         socket.emit("login_failed");
@@ -54,14 +60,20 @@ io.on("connection", function (socket) {
         }
         socket.emit("register_failed");
     });
-    socket.on("create_task", async (data) => {
+    socket.on("message", async (data) => {
+        const { message = "" } = data;
         if (userId != -1) {
-            createTask(userId, data);
-        }
-    });
-    socket.on("delete_task", async (data) => {
-        if (userId != -1) {
-            deleteTask(userId, data);
+            const result = convertString(message);
+            const response = await runUsecase(userId, result);
+            socket.emit("message", { message: response[0] });
+            var box = [0, 1, 1, 1, 0];
+            if (box[(Math.random() * box.length) | 0] == 0) {
+                socket.emit("sticker", parseInt(box[1]));
+            }
+        } else {
+            socket.emit("message", {
+                message: "Anda perlu melakukan login/register.",
+            });
         }
     });
 });
