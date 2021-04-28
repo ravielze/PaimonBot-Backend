@@ -34,7 +34,7 @@ const login = async (username, password) => {
 };
 
 const register = async (username, password) => {
-    if (username.length < 8 || password.length < 4) {
+    if (username.length < 4 || password.length < 8) {
         return -1;
     }
     const exist = await isUsernameExist(username).then((exist) => {
@@ -85,40 +85,45 @@ const markDone = async (userId, data) => {
 
 const runUsecase = async (userId, data) => {
     const { type = 0, body = {} } = data;
-    console.log(type);
-    switch (parseInt(type)) {
-        case 0:
-            return [getUnknownMessage(), 0];
-        case 1:
-            createTask(userId, body);
-            return [getOkMessage(), 1];
-        case 2:
-            var result = await getAllTaskByDate(userId, body);
-            return [getTask("[Daftar Deadline/Task]", result), 2];
-        case 3:
-            var result = await getAllTaskByCodeAndType(userId, body);
-            return [getTask("[Daftar Deadline/Task]", result), 3];
-        case 4:
-            var result = await updateDeadline(userId, body);
-            if (result) {
-                return [getOkMessage(), 4];
-            } else {
-                return [getNotOkMessage(body.taskId), 4];
-            }
-        case 5:
-            var result = await markDone(userId, body);
-            if (result) {
-                return [getOkMessage(), 5];
-            } else {
-                return [getNotOkMessage(body.taskId), 5];
-            }
-        case 6:
-            return ["masih todo", 6];
-        case 7:
-            var result = await getAllTaskByDuration(userId, body);
-            return [getTask("[Daftar Deadline/Task]", result), 7];
-        default:
-            return [getUnknownMessage(), 0];
+    try {
+        switch (parseInt(type)) {
+            case 0:
+                return [getUnknownMessage(), 0];
+            case 1:
+                createTask(userId, body);
+                return [getOkMessage(), 1];
+            case 2:
+                var result = await getAllTaskByDate(userId, body);
+                return [getTask("[Daftar Deadline/Task]", result), 2];
+            case 3:
+                var result = await getAllTaskByCodeAndType(userId, body);
+                return [getTask("[Daftar Deadline/Task]", result), 3];
+            case 4:
+                var result = await updateDeadline(userId, body);
+                if (result) {
+                    return [getOkMessage(), 4];
+                } else {
+                    return [getNotOkMessage(body.taskId), 4];
+                }
+            case 5:
+                var result = await markDone(userId, body);
+                if (result) {
+                    return [getOkMessage(), 5];
+                } else {
+                    return [getNotOkMessage(body.taskId), 5];
+                }
+            case 6:
+                return ["masih todo", 6];
+            case 7:
+                var result = await getAllTaskByDuration(userId, body);
+                return [getTask("[Daftar Deadline/Task]", result), 7];
+            default:
+                return [getUnknownMessage(), 0];
+        }
+    } catch (err) {
+        console.log(err);
+        console.log(type);
+        return ["Terjadi kesalahan pada sistem", 0];
     }
 };
 

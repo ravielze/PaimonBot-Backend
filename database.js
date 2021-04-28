@@ -229,7 +229,7 @@ const getTasksByDate = (fromDate, toDate, userId) => {
     WHERE done = FALSE AND
     deadline >= to_date($1, 'dd-mm-yyyy') AND
     deadline <= to_date($2, 'dd-mm-yyyy')
-    AND user_id = $2
+    AND user_id = $3
     ORDER BY deadline ASC`;
     return pool
         .query(query, [fromDate, toDate, userId])

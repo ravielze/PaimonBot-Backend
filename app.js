@@ -68,13 +68,16 @@ io.on("connection", function (socket) {
             socket.emit("message", { message: response[0] });
             var box = [0, 1, 1, 1, 0];
             if (box[(Math.random() * box.length) | 0] == 0) {
-                socket.emit("sticker", parseInt(box[1]));
+                socket.emit("sticker", parseInt(response[1]));
             }
         } else {
             socket.emit("message", {
                 message: "Anda perlu melakukan login/register.",
             });
         }
+    });
+    socket.on("logout", async () => {
+        userId = -1;
     });
 });
 
