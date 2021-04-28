@@ -134,7 +134,7 @@ const insertTask = (data, userId) => {
 const removeTask = (userId, idtask) => {
     var query = `
     UPDATE "task" SET done = TRUE
-    WHERE user_id = $2 AND deadline >= to_date($3, 'dd-mm-yyyy')
+    WHERE user_id = $2 AND deadline >= to_date($3, 'dd-mm-yyyy') AND
     task_id = $1 AND done = FALSE`;
     return pool
         .query(query, [idtask, userId, currentTime()])
