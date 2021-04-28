@@ -1,5 +1,15 @@
 # Paimon Bot
 
+# Table of contents
+
+-   [General info](#general-info)
+-   [Screenshots](#screenshots)
+-   [Technologies](#technologies)
+-   [Setup & Installation](#setup--installation)
+-   [Features](#features)
+-   [Status](#status)
+-   [Contact](#contact)
+
 # General Info
 
 Paimon bot adalah chatbot yang menggunakan string matching dengan algoritma KMP dan Regex untuk mengingatkan dan menyimpan tanggal-tanggal penting pada tugas dan deadline anda.
@@ -10,28 +20,67 @@ Paimon bot adalah chatbot yang menggunakan string matching dengan algoritma KMP 
 -   PostgreSQL & Node-Postgres
 -   Docker
 -   NPM
+-   Socket IO
+-   React
+-   Tailwind CSS
 
 # Setup & Installation
 
-## Docker
+## Backend
+
+Dapat dilakukan salah satu dari 3 cara berikut.
+
+### 1. Docker
 
 1. Download image dengan cara `docker pull docker.pkg.github.com/ravielze/paimonbot-backend/paimon-bot:latest`
 2. Setup environment variable
 3. Jalankan image tersebut
 
-## Local
+### 2. Tanpa Docker dan Local
 
-1. Setup environment variable dengan cara mengcopy file `.env.example` menjadi `.env`
-2. Samakan dengan data login database dengan database postgres local
-3. Jangan lupa `npm install`
-4. Jalankan dengan `node app.js`
-5. Untuk melihat tampilan, jalankan frontend, repository dapat dilihat pada [Tautan Berikut](https://github.com/jasonstanleyyoman/Paimonbot-FE)
+1. Clone repository
+2. Setup environment variable dengan cara mengcopy file `.env.example` menjadi `.env`
+3. Samakan dengan data login database dengan database postgres local
+4. Jangan lupa `npm install`
+5. Jalankan dengan `node app.js`
+6. Untuk melihat tampilan, jalankan frontend, repository dapat dilihat pada [Tautan Berikut](https://github.com/jasonstanleyyoman/Paimonbot-FE) dan untuk bantuan instalasi bisa dilihat pada poin [frontend](#frontend).
 
-## Deployed
+### 3. Deployed
 
 1. Buka Link `https://paimonbot.vercel.app/`
 
-# Fitur:
+## Frontend
+
+1. Clone repository
+
+```sh
+git clone https://github.com/jasonstanleyyoman/Paimonbot-FE.git paimon-bot
+cd paimon-bot
+```
+
+Untuk menjalankan secara lokal :
+
+```sh
+npm start
+```
+
+Untuk melakukan build production :
+
+```sh
+npm build
+```
+
+Untuk menjalankannya, Anda perlu backend dari project ini. Untuk instalasi backend, silahkan ikuti tautan berikut [backend](https://github.com/ravielze/PaimonBot-Backend), Selain itu, perlu juga untuk membuat sebuah file .env untuk konfigurasi.
+
+```sh
+touch .env
+```
+
+Setelah itu copy semua yang ada di `.env.example` ke file `.env` yang baru. Ubah `REACT_APP_SOCKET_URL` ke url backend yang telah diinstal. Anda juga dapat mengubah nama bot dengan mengubah variabel `REACT_APP_BOT_NAME`.
+
+# Features
+
+## ChatBot Functionality
 
 1. Menambah Task
    Bot akan mendeteksi pesan yang memiliki:
@@ -86,3 +135,28 @@ Kuis, Ujian, Tubes, Tucil, Praktikum
 
 Kata kunci:
 deadline, kapan, dimajukan, diundur, kelar, help, sejauh ini, hari ini, minggu ini, x hari, x minggu, task x
+
+## General Functionality
+
+Fitur secara umum
+
+-   Login
+-   Register
+-   Penambahan Task Baru
+-   Melihat Daftar Task
+-   Menampilkan Deadline
+-   Memperbaharui Task Tertentu
+-   Menandakan Task Sudah Dikerjakan
+-   Menampilkan Opsi Help
+-   Analisa Typo dan Rekomendasi Kata
+-   Menampilkan Pesan Error
+
+## Status
+
+Project sudah selesai.
+
+## Author
+
+1. [Steven Nataniel](https://github.com/ravielze) 13519002
+1. [Jason Stanley Yoman](https://github.com/jasonstanleyyoman) 13519019
+1. [Kinantan Arya Bagaspati](https://github.com/kinantanbagaspati) 13519044
