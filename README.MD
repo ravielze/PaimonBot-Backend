@@ -1,4 +1,37 @@
-# Fitur paimon-bot:
+# Paimon Bot
+
+# General Info
+
+Paimon bot adalah chatbot yang menggunakan string matching dengan algoritma KMP dan Regex untuk mengingatkan dan menyimpan tanggal-tanggal penting pada tugas dan deadline anda.
+
+# Technologies
+
+-   Node.JS - Version 14.0+
+-   PostgreSQL & Node-Postgres
+-   Docker
+-   NPM
+
+# Setup & Installation
+
+## Docker
+
+1. Download image dengan cara `docker pull docker.pkg.github.com/ravielze/paimonbot-backend/paimon-bot:latest`
+2. Setup environment variable
+3. Jalankan image tersebut
+
+## Local
+
+1. Setup environment variable dengan cara mengcopy file `.env.example` menjadi `.env`
+2. Samakan dengan data login database dengan database postgres local
+3. Jangan lupa `npm install`
+4. Jalankan dengan `node app.js`
+5. Untuk melihat tampilan, jalankan frontend, repository dapat dilihat pada [Tautan Berikut](https://github.com/jasonstanleyyoman/Paimonbot-FE)
+
+## Deployed
+
+1. Buka Link `https://paimonbot.vercel.app/`
+
+# Fitur:
 
 1. Menambah Task
    Bot akan mendeteksi pesan yang memiliki:
