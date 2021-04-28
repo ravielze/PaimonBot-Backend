@@ -38,7 +38,13 @@ Dapat dilakukan salah satu dari 3 cara berikut.
 
 ### 2. Tanpa Docker dan Local
 
-1. Clone repository
+1. Clone repository Backend
+
+```sh
+git clone https://github.com/ravielze/PaimonBot-Backend.git paimon-bot
+cd paimon-bot
+```
+
 2. Setup environment variable dengan cara mengcopy file `.env.example` menjadi `.env`
 3. Samakan dengan data login database dengan database postgres local
 4. Jangan lupa `npm install`
@@ -51,7 +57,7 @@ Dapat dilakukan salah satu dari 3 cara berikut.
 
 ## Frontend
 
-1. Clone repository
+1. Clone repository Frontend
 
 ```sh
 git clone https://github.com/jasonstanleyyoman/Paimonbot-FE.git paimon-bot
