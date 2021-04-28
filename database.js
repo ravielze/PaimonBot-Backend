@@ -202,7 +202,7 @@ const getFilteredTasks = async (userId, code, filterType) => {
     var query = `
     SELECT * from "task"
     WHERE done = FALSE AND
-    deadline >= to_date($4, 'dd-mm-yyyy') AND
+    deadline >= to_date($4, 'dd-mm-yyyy')
     AND code = $3 AND
     user_id = $1 AND type = $2
     ORDER BY deadline ASC`;
