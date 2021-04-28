@@ -133,6 +133,43 @@ Keyword: deadline
 Komponen: (fromDate(opsional), endDate) / durasi
 Durasi: x hari, x minggu
 */
+    if (
+        findOccurence("dimajukan", text).length > 0 ||
+        findOccurence("diundur", text).length > 0
+    ) {
+        var task = /task \d*/i.exec(text);
+        var date = text.match(/\d{2}-\d{2}-\d{4}/g);
+        if (task && date) {
+            return {
+                type: 4,
+                body: {
+                    taskId: parseInt(task[0].split(" ")[1]),
+                    deadline: date[0],
+                },
+            };
+        }
+    }
+    if (findOccurence("kapan", text).length > 0) {
+        var code = /[A-Z]{2}\d{4}/i.exec(text);
+        if (code) {
+            if (types.length == 0) {
+                return {
+                    type: 3,
+                    body: {
+                        code: code[0],
+                        type: ["Tubes", "Tucil"],
+                    },
+                };
+            }
+            return {
+                type: 3,
+                body: {
+                    code: code[0],
+                    type: types,
+                },
+            };
+        }
+    }
     if (findOccurence("deadline", text).length > 0) {
         var date = text.match(/\d{2}-\d{2}-\d{4}/g);
         var returnTypes = [];
@@ -216,49 +253,12 @@ Durasi: x hari, x minggu
 Keyword: kapan, type
 Komponen: Code
 */
-    if (findOccurence("kapan", text).length > 0) {
-        var code = /[A-Z]{2}\d{4}/i.exec(text);
-        if (code) {
-            if (types.length == 0) {
-                return {
-                    type: 3,
-                    body: {
-                        code: code[0],
-                        type: ["Tubes", "Tucil"],
-                    },
-                };
-            }
-            return {
-                type: 3,
-                body: {
-                    code: code[0],
-                    type: types,
-                },
-            };
-        }
-    }
 
     /*
 4. Update task
 Keyword: dimajukan, diundur, task
 Komponen: Date, ID Task
 */
-    if (
-        findOccurence("dimajukan", text).length > 0 ||
-        findOccurence("diundur", text).length > 0
-    ) {
-        var task = /task \d*/i.exec(text);
-        var date = text.match(/\d{2}-\d{2}-\d{4}/g);
-        if (task && date) {
-            return {
-                type: 4,
-                body: {
-                    taskId: parseInt(task[0].split(" ")[1]),
-                    deadline: date[0],
-                },
-            };
-        }
-    }
 
     /*
 5. Selesai ngerjain
