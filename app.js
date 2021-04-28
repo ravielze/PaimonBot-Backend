@@ -42,7 +42,7 @@ io.on("connection", function (socket) {
             socket.emit("message", {
                 message: `Selamat datang kembali ${username}!`,
             });
-            var result = await sendTask();
+            var result = await sendTask(userId);
             socket.emit("message", { message: result });
             socket.emit("sticker", 5);
             return;

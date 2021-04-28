@@ -74,8 +74,8 @@ const levenshteinDistance = (string1, string2) => {
 
 //Bernilai 0-1, semakin besar semakin mirip
 const tingkatKemiripan = (str1, str2) => {
-    var mean = (str1.length + str2.length) / 2;
-    return 1 - levenshteinDistance(str1, str2) / mean;
+    var mx = Math.max(str1.length, str2.length);
+    return 1 - levenshteinDistance(str1, str2) / mx;
 };
 
 const taskType = ["Kuis", "Ujian", "Tucil", "Tubes", "Praktikum"];
@@ -99,17 +99,19 @@ Type: Kuis, Ujian, Tucil, Tubes, Praktikum
             var date = /\d{2}-\d{2}-\d{4}/.exec(text);
             var code = /[A-Z]{2}\d{4}/.exec(text);
             //Cari index untuk ambil note
-            var fromIdx = code.index + 7;
-            var toIdx = date.index - 1;
-            return {
-                type: 1,
-                body: {
-                    type: types[0],
-                    code: code[0],
-                    deadline: date[0],
-                    note: text.slice(fromIdx, toIdx),
-                },
-            };
+            if (code && date) {
+                var fromIdx = code.index + 7;
+                var toIdx = date.index - 1;
+                return {
+                    type: 1,
+                    body: {
+                        type: types[0],
+                        code: code[0],
+                        deadline: date[0],
+                        note: text.slice(fromIdx, toIdx),
+                    },
+                };
+            }
         }
     }
 
@@ -185,6 +187,15 @@ Komponen: Code
     if (findOccurence("kapan", text).length > 0) {
         var code = text.match(/[A-Z]{2}\d{4}/g);
         if (code) {
+            if (types.length == 0) {
+                return {
+                    type: 3,
+                    body: {
+                        code: code[0],
+                        type: ["Tubes", "Tucil"],
+                    },
+                };
+            }
             return {
                 type: 3,
                 body: {
@@ -206,7 +217,7 @@ Komponen: Date, ID Task
     ) {
         var task = text.match(/task \d*/g);
         var date = text.match(/\d{2}-\d{2}-\d{4}/g);
-        if (task.length > 0 && date.length > 0) {
+        if (task && date) {
             return {
                 type: 4,
                 body: {
@@ -224,12 +235,14 @@ Komponen: ID Task
 */
     if (findOccurence("kelar", text).length > 0) {
         var taskID = /task \d*/i.exec(text);
-        return {
-            type: 5,
-            body: {
-                taskId: parseInt(taskID[0].split(" ")[1]),
-            },
-        };
+        if (taskID) {
+            return {
+                type: 5,
+                body: {
+                    taskId: parseInt(taskID[0].split(" ")[1]),
+                },
+            };
+        }
     }
 
     /*
@@ -248,8 +261,8 @@ Keyword: Help
     for (var i = 0; i < wordText.length; i++) {
         for (var j = 0; j < keyword.length; j++) {
             tk = tingkatKemiripan(wordText[i], keyword[j]);
-            if (tk > 0.75) {
-                typo.push([-tk, fromIdx, fromIdx + wordText[i].length, j]);
+            if (tk > 0.75 && tk < 1) {
+                typo.push([1 - tk, fromIdx, fromIdx + wordText[i].length, j]);
             }
         }
         fromIdx += wordText[i].length + 1;
@@ -266,7 +279,7 @@ Keyword: Help
                 text.slice(0, typo[i][1]) +
                 keyword[typo[i][3]] +
                 text.slice(typo[i][2], text.length),
-            tingkatKemiripan: -typo[i][0],
+            tingkatKemiripan: 1 - typo[i][0],
         });
     }
 
@@ -282,23 +295,23 @@ Keyword: Help
     return { type: 0 };
 };
 
-console.log(
-    convertString("Pakbos, ada tubes IF2240 HAloheloBandung 22-04-2021")
-);
-console.log(convertString("Hari ini deadline apaaja bos?"));
-console.log(convertString("Coy IF2211 deadlinenya kapan aja seh?"));
-console.log(
-    convertString(
-        "Video OS yaitu task 5 dimajukan jadi 01-05-2021 coba anjing minta ditabok"
-    )
-);
-console.log(convertString("Gw udh kelar ngerjain task 60 neh"));
-console.log(convertString("anjir bang heLp"));
-console.log(
-    convertString(
-        "Bang bot dimajokan eaaa pengen ngetes keler lu bisa autocorrect ga halp"
-    ).body.suggestions
-);
+// console.log(
+//     convertString("Pakbos, ada tubes IF2240 HAloheloBandung 22-04-2021")
+// );
+// console.log(convertString("Hari ini deadline apaaja bos?"));
+// console.log(convertString("Coy IF2211 deadlinenya kapan aja seh?"));
+// console.log(
+//     convertString(
+//         "Video OS yaitu task 5 dimajukan jadi 01-05-2021 coba anjing minta ditabok"
+//     )
+// );
+// console.log(convertString("Gw udh kelar ngerjain task 60 neh"));
+// console.log(convertString("anjir bang heLp"));
+// console.log(
+//     convertString(
+//         "Bang bot dimajokan eaaa pengen ngetes keler lu bisa autocorrect ga halp"
+//     ).body.suggestions
+// );
 
 /**
  * IDTASK (INT) | Code VARCHAR(6) | type VARCHAR(16) | Note VARCHAR(1024) | deadline (DATE) | Done (BOOL)

@@ -85,6 +85,7 @@ const markDone = async (userId, data) => {
 
 const runUsecase = async (userId, data) => {
     const { type = 0, body = {} } = data;
+    console.log(type);
     switch (parseInt(type)) {
         case 0:
             return [getUnknownMessage(), 0];
@@ -122,7 +123,7 @@ const runUsecase = async (userId, data) => {
 };
 
 const sendTask = async (userId) => {
-    var result = await getTasksByDay(1, userId);
+    var result = await getTasksByDay(7, userId);
     return getTask("[Daftar Deadline/Task untuk 1 Minggu kedepan]\n", result);
 };
 

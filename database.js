@@ -1,5 +1,5 @@
 const { Pool } = require("pg");
-const { convertDataTime, convertTime } = require("./data");
+const { convertDataTime, convertTime, currentTime } = require("./data");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
@@ -134,10 +134,10 @@ const insertTask = (data, userId) => {
 const removeTask = (userId, idtask) => {
     var query = `
     UPDATE "task" SET done = TRUE
-    WHERE user_id = $2 AND
+    WHERE user_id = $2 AND deadline >= to_date($3, 'dd-mm-yyyy')
     task_id = $1 AND done = FALSE`;
     return pool
-        .query(query, [idtask, userId])
+        .query(query, [idtask, userId, currentTime()])
         .then((res) => res.rowCount != 0)
         .catch((err) =>
             setImmediate(() => {
@@ -182,11 +182,11 @@ const getTasks = (userId) => {
     var query = `
     SELECT * from "task"
     WHERE done = FALSE AND
-    deadline >= now() AND
+    deadline >= to_date($2, 'dd-mm-yyyy') AND
     user_id = $1
     ORDER BY deadline ASC`;
     return pool
-        .query(query, [userId])
+        .query(query, [userId, currentTime()])
         .then((res) => {
             res.rows.map((x) => convertDataTime(x));
             return res.rows;
@@ -202,13 +202,13 @@ const getFilteredTasks = async (userId, code, filterType) => {
     var query = `
     SELECT * from "task"
     WHERE done = FALSE AND
-    deadline >= now() AND
+    deadline >= to_date($4, 'dd-mm-yyyy') AND
     AND code = $3 AND
     user_id = $1 AND type = $2
     ORDER BY deadline ASC`;
     for (var i = 0; i < filterType.length; i++) {
         var rs = await pool
-            .query(query, [userId, filterType[i], code])
+            .query(query, [userId, filterType[i], code, currentTime()])
             .then((res) => {
                 res.rows.map((x) => convertDataTime(x));
                 return res.rows;
@@ -244,11 +244,34 @@ const getTasksByDate = (fromDate, toDate, userId) => {
         );
 };
 
-const getTasksByDay = (day, userId) => {
+const getTodayTask = (userId) => {
     var query = `
     SELECT * from "task"
     WHERE done = FALSE AND
-    deadline >= now() AND
+    deadline = to_date($1, 'dd-mm-yyyy')
+    AND user_id = $2
+    ORDER BY deadline ASC`;
+    return pool
+        .query(query, [currentTime(), userId])
+        .then((res) => {
+            res.rows.map((x) => convertDataTime(x));
+            return res.rows;
+        })
+        .catch((err) =>
+            setImmediate(() => {
+                throw err;
+            })
+        );
+};
+
+const getTasksByDay = (day, userId) => {
+    if (day == 0) {
+        return getTodayTask(userId);
+    }
+    var query = `
+    SELECT * from "task"
+    WHERE done = FALSE AND
+    deadline >= to_date($3, 'dd-mm-yyyy') AND
     deadline <= to_date($1, 'dd-mm-yyyy')
     AND user_id = $2
     ORDER BY deadline ASC`;
@@ -256,7 +279,7 @@ const getTasksByDay = (day, userId) => {
     time = time.setDate(time.getDate() + day);
     var t = convertTime(time);
     return pool
-        .query(query, [t, userId])
+        .query(query, [t, userId, currentTime()])
         .then((res) => {
             res.rows.map((x) => convertDataTime(x));
             return res.rows;
