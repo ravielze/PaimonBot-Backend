@@ -223,7 +223,7 @@ const getFilteredTasks = async (userId, code, filterType) => {
     return result;
 };
 
-const getTasksByDate = (fromDate, toDate, userId, filterType) => {
+const getTasksByDate = async (fromDate, toDate, userId, filterType) => {
     var result = [];
     var query = `
     SELECT * from "task"
@@ -234,19 +234,19 @@ const getTasksByDate = (fromDate, toDate, userId, filterType) => {
     ORDER BY deadline ASC`;
     for (var i = 0; i < filterType.length; i++) {
         var rs = await pool
-        .query(query, [fromDate, toDate, userId, filterType[i]])
-        .then((res) => {
-            res.rows.map((x) => convertDataTime(x));
-            return res.rows;
-        })
-        .catch((err) =>
-            setImmediate(() => {
-                throw err;
+            .query(query, [fromDate, toDate, userId, filterType[i]])
+            .then((res) => {
+                res.rows.map((x) => convertDataTime(x));
+                return res.rows;
             })
-        );
+            .catch((err) =>
+                setImmediate(() => {
+                    throw err;
+                })
+            );
         result.push(...rs);
     }
-    return 
+    return result;
 };
 
 const getTodayTask = (userId) => {
