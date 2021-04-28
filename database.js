@@ -29,7 +29,7 @@ pool.connect((err) => {
 
 const createUserTable = () => {
     var table = `
-    CREATE TABLE IF NOT EXISTS "user" (
+    CREATE TABLE IF NOT EXISTS "paimon_users" (
         "user_id" SERIAL PRIMARY KEY,
         "username" VARCHAR(32) UNIQUE NOT NULL,
         "password" VARCHAR(128) NOT NULL
@@ -43,7 +43,7 @@ const createUserTable = () => {
 
 const getUserByUsername = (username) => {
     var query = `
-    SELECT * from "user"
+    SELECT * from "paimon_users"
     WHERE username = $1`;
     return pool
         .query(query, [username])
@@ -57,7 +57,7 @@ const getUserByUsername = (username) => {
 
 const isUsernameExist = (username) => {
     var query = `
-    SELECT * from "user"
+    SELECT * from "paimon_users"
     WHERE username = $1`;
     return pool
         .query(query, [username])
@@ -75,7 +75,7 @@ const createUser = async (username, password) => {
     const salt = await bcrypt.genSalt(10);
     var hashedPassword = await bcrypt.hash(password, salt);
     var query = `
-    INSERT INTO "user"
+    INSERT INTO "paimon_users"
       (username, password)
       VALUES
       ($1, $2) RETURNING user_id`;
@@ -102,7 +102,7 @@ const createTaskTable = () => {
         "note" VARCHAR(1024) DEFAULT '',
         "deadline" DATE DEFAULT NOW(),
         "done" BOOLEAN DEFAULT FALSE,
-        FOREIGN KEY(user_id) REFERENCES "user" (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES "paimon_users" (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
         PRIMARY KEY (user_id, task_id)
         )`;
     pool.query(table).catch((err) =>
