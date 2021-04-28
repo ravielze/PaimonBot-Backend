@@ -55,8 +55,12 @@ const createTask = (userId, data) => {
 };
 
 const getAllTaskByDate = async (userId, data) => {
-    const { fromDate = currentTime(), toDate = currentTime() } = data;
-    const result = await getTasksByDate(fromDate, toDate, userId);
+    const {
+        type = [],
+        fromDate = currentTime(),
+        toDate = currentTime(),
+    } = data;
+    const result = await getTasksByDate(fromDate, toDate, userId, type);
     return result;
 };
 
@@ -141,7 +145,7 @@ const runUsecase = async (userId, data) => {
     try {
         switch (parseInt(type)) {
             case -1:
-                return [getTypoRecommendation(body.suggestion), -1];
+                return [getTypoRecommendation(body.suggestions), -1];
             case 0:
                 return [getUnknownMessage(), 0];
             case 1:

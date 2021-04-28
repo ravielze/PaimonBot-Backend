@@ -135,6 +135,16 @@ Durasi: x hari, x minggu
 */
     if (findOccurence("deadline", text).length > 0) {
         var date = text.match(/\d{2}-\d{2}-\d{4}/g);
+        var returnTypes = [];
+        if (types.length == 0) {
+            for (var i = 0; i < 5; i++) {
+                returnTypes.push(taskType[i]);
+            }
+        } else {
+            for (var i = 0; i < types.length; i++) {
+                returnTypes.push(types[i]);
+            }
+        }
         if (date) {
             if (date.length == 1) {
                 return {
@@ -142,7 +152,7 @@ Durasi: x hari, x minggu
                     body: {
                         fromDate: currentTime(),
                         toDate: date[0],
-                        type: types,
+                        type: returnTypes,
                     },
                 };
             } else {
@@ -151,7 +161,7 @@ Durasi: x hari, x minggu
                     body: {
                         fromDate: date[0],
                         toDate: date[1],
-                        type: types,
+                        type: returnTypes,
                     },
                 };
             }
@@ -162,7 +172,7 @@ Durasi: x hari, x minggu
                     body: {
                         fromDate: currentTime(),
                         toDate: "31-12-2025",
-                        type: types,
+                        type: returnTypes,
                     },
                 };
             }
@@ -172,7 +182,7 @@ Durasi: x hari, x minggu
                     body: {
                         fromDate: currentTime(),
                         duration: 0,
-                        type: types,
+                        type: returnTypes,
                     },
                 };
             }
@@ -184,7 +194,7 @@ Durasi: x hari, x minggu
                     body: {
                         fromDate: currentTime(),
                         duration: parseInt(days[0].split(" ")[0]),
-                        type: types,
+                        type: returnTypes,
                     },
                 };
             }
@@ -194,7 +204,7 @@ Durasi: x hari, x minggu
                     body: {
                         fromDate: currentTime(),
                         duration: 7 * parseInt(weeks[0].split(" ")[0]),
-                        type: types,
+                        type: returnTypes,
                     },
                 };
             }
@@ -316,30 +326,5 @@ Keyword: Help
 
     return { type: 0 };
 };
-
-console.log(
-    convertString(
-        "Tanggal 09-05-2021 ada tucil IF2210 bot, topik: Tugas Baca III"
-    )
-);
-// console.log(convertString("Hari ini deadline apaaja bos?"));
-// console.log(convertString("Coy IF2211 deadlinenya kapan aja seh?"));
-// console.log(
-//     convertString(
-//         "Video OS yaitu task 5 dimajukan jadi 01-05-2021 coba anjing minta ditabok"
-//     )
-// );
-// console.log(convertString("Gw udh kelar ngerjain task 60 neh"));
-// console.log(convertString("anjir bang heLp"));
-// console.log(
-//     convertString(
-//         "Bang bot dimajokan eaaa pengen ngetes keler lu bisa autocorrect ga halp"
-//     ).body.suggestions
-// );
-
-/**
- * IDTASK (INT) | Code VARCHAR(6) | type VARCHAR(16) | Note VARCHAR(1024) | deadline (DATE) | Done (BOOL)
- */
-//
 
 module.exports = { convertString };

@@ -223,16 +223,18 @@ const getFilteredTasks = async (userId, code, filterType) => {
     return result;
 };
 
-const getTasksByDate = (fromDate, toDate, userId) => {
+const getTasksByDate = (fromDate, toDate, userId, filterType) => {
+    var result = [];
     var query = `
     SELECT * from "task"
     WHERE done = FALSE AND
     deadline >= to_date($1, 'dd-mm-yyyy') AND
     deadline <= to_date($2, 'dd-mm-yyyy')
-    AND user_id = $3
+    AND user_id = $3 AND type = $4
     ORDER BY deadline ASC`;
-    return pool
-        .query(query, [fromDate, toDate, userId])
+    for (var i = 0; i < filterType.length; i++) {
+        var rs = await pool
+        .query(query, [fromDate, toDate, userId, filterType[i]])
         .then((res) => {
             res.rows.map((x) => convertDataTime(x));
             return res.rows;
@@ -242,6 +244,9 @@ const getTasksByDate = (fromDate, toDate, userId) => {
                 throw err;
             })
         );
+        result.push(...rs);
+    }
+    return 
 };
 
 const getTodayTask = (userId) => {
