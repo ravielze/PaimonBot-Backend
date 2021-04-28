@@ -79,7 +79,16 @@ const tingkatKemiripan = (str1, str2) => {
 };
 
 const taskType = ["Kuis", "Ujian", "Tucil", "Tubes", "Praktikum"];
-const keyword = ["deadline", "kapan", "dimajukan", "diundur", "kelar", "help"];
+const keyword = [
+    "deadline",
+    "kapan",
+    "dimajukan",
+    "diundur",
+    "kelar",
+    "help",
+    "hari",
+    "minggu",
+];
 
 const convertString = (text) => {
     var types = [];
@@ -95,23 +104,26 @@ Komponen: Type, Code, Note, Duedate
 Type: Kuis, Ujian, Tucil, Tubes, Praktikum
 */
     if (types.length > 0) {
-        if (/.*[A-Z]{2}\d{2}.*\d{2}-\d{2}-\d{4}/.test(text)) {
-            var date = /\d{2}-\d{2}-\d{4}/.exec(text);
-            var code = /[A-Z]{2}\d{4}/.exec(text);
-            //Cari index untuk ambil note
-            if (code && date) {
-                var fromIdx = code.index + 7;
-                var toIdx = date.index - 1;
-                return {
-                    type: 1,
-                    body: {
-                        type: types[0],
-                        code: code[0],
-                        deadline: date[0],
-                        note: text.slice(fromIdx, toIdx),
-                    },
-                };
+        var date = /\d{2}-\d{2}-\d{4}/.exec(text);
+        var code = /[A-Z]{2}\d{4}/.exec(text);
+        var topik = findOccurence("topik: ", text);
+        //Cari index untuk ambil note
+        if (code && date) {
+            var fromIdx = code.index + 7;
+            var toIdx = date.index - 1;
+            var notes = text.slice(fromIdx, toIdx);
+            if (topik.length > 0) {
+                notes = text.slice(topik[topik.length - 1] + 7, text.length);
             }
+            return {
+                type: 1,
+                body: {
+                    type: types[0],
+                    code: code[0],
+                    deadline: date[0],
+                    note: notes,
+                },
+            };
         }
     }
 
@@ -144,6 +156,16 @@ Durasi: x hari, x minggu
                 };
             }
         } else {
+            if (/sejauh ini/i.test(text)) {
+                return {
+                    type: 7,
+                    body: {
+                        fromDate: currentTime(),
+                        toDate: "31-12-2025",
+                        type: types,
+                    },
+                };
+            }
             if (/hari ini/i.test(text)) {
                 return {
                     type: 7,
@@ -185,7 +207,7 @@ Keyword: kapan, type
 Komponen: Code
 */
     if (findOccurence("kapan", text).length > 0) {
-        var code = text.match(/[A-Z]{2}\d{4}/g);
+        var code = /[A-Z]{2}\d{4}/i.exec(text);
         if (code) {
             if (types.length == 0) {
                 return {
@@ -215,7 +237,7 @@ Komponen: Date, ID Task
         findOccurence("dimajukan", text).length > 0 ||
         findOccurence("diundur", text).length > 0
     ) {
-        var task = text.match(/task \d*/g);
+        var task = /task \d*/i.exec(text);
         var date = text.match(/\d{2}-\d{2}-\d{4}/g);
         if (task && date) {
             return {
@@ -261,7 +283,7 @@ Keyword: Help
     for (var i = 0; i < wordText.length; i++) {
         for (var j = 0; j < keyword.length; j++) {
             tk = tingkatKemiripan(wordText[i], keyword[j]);
-            if (tk > 0.75 && tk < 1) {
+            if (tk >= 0.75 && tk < 1) {
                 typo.push([1 - tk, fromIdx, fromIdx + wordText[i].length, j]);
             }
         }
@@ -295,9 +317,11 @@ Keyword: Help
     return { type: 0 };
 };
 
-// console.log(
-//     convertString("Pakbos, ada tubes IF2240 HAloheloBandung 22-04-2021")
-// );
+console.log(
+    convertString(
+        "Tanggal 09-05-2021 ada tucil IF2210 bot, topik: Tugas Baca III"
+    )
+);
 // console.log(convertString("Hari ini deadline apaaja bos?"));
 // console.log(convertString("Coy IF2211 deadlinenya kapan aja seh?"));
 // console.log(
@@ -316,7 +340,6 @@ Keyword: Help
 /**
  * IDTASK (INT) | Code VARCHAR(6) | type VARCHAR(16) | Note VARCHAR(1024) | deadline (DATE) | Done (BOOL)
  */
-
 //
 
 module.exports = { convertString };

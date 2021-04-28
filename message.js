@@ -9,10 +9,9 @@ const getUnknownMessage = () => {
 };
 
 const NO_TASK = [
-    "Tidak ada task, yey bebas :D",
+    "Tidak ada task/deadline, yey bebas :D",
     "Nyantuy aja bos, gada task/deadline kok!",
-    "Yuhuu, tidak ada deadline",
-    "Mau banget deadline ya? Ga ada task bosku!",
+    "Yuhuu, tidak ada task/deadline",
 ];
 
 const getNoTaskMessage = () => {
@@ -63,4 +62,22 @@ const getNotOkMessage = (id) => {
     return NOT_OK[(Math.random() * NOT_OK.length) | 0].replace("{$$$}", id);
 };
 
-module.exports = { getUnknownMessage, getTask, getOkMessage, getNotOkMessage };
+const getTypoRecommendation = (data) => {
+    var toReturn = "Mungkin maksud anda:\n";
+    for (var i = 0; i < data.length; i++) {
+        toReturn +=
+            data[i].text +
+            "- Tingkat kemiripan: " +
+            data[i].tingkatKemiripan +
+            "\n";
+    }
+    return toReturn;
+};
+
+module.exports = {
+    getUnknownMessage,
+    getTask,
+    getOkMessage,
+    getNotOkMessage,
+    getTypoRecommendation,
+};
