@@ -14,6 +14,11 @@
 
 Paimon bot adalah chatbot yang menggunakan string matching dengan algoritma KMP dan Regex untuk mengingatkan dan menyimpan tanggal-tanggal penting pada tugas dan deadline anda.
 
+## Screenshots
+![Example 1](./img/img1.png)
+
+![Example 1](./img/img2.png)
+
 # Technologies
 
 -   Node.JS - Version 14.0+
