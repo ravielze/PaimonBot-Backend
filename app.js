@@ -64,7 +64,11 @@ io.on("connection", function (socket) {
         const { message = "" } = data;
         if (userId != -1) {
             const result = convertString(message);
-            const response = await runUsecase(userId, result);
+            const response = await runUsecase(userId, result).catch((err) => {
+                console.log(err);
+                console.log(type);
+                return ["Terjadi kesalahan pada sistem", 0];
+            });
             socket.emit("message", { message: response[0] });
             var box = [0, 1, 1, 1, 0];
             if (box[(Math.random() * box.length) | 0] == 0) {

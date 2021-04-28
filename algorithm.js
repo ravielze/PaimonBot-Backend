@@ -168,10 +168,10 @@ Durasi: x hari, x minggu
         } else {
             if (/sejauh ini/i.test(text)) {
                 return {
-                    type: 7,
+                    type: 2,
                     body: {
                         fromDate: currentTime(),
-                        toDate: "31-12-2025",
+                        toDate: "31-12-2030",
                         type: returnTypes,
                     },
                 };
