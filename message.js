@@ -33,9 +33,9 @@ const getTaskBuilder = (data) => {
     var result = "";
     for (var i = 0; i < data.length; i++) {
         if (data[i].note != "") {
-            result += `(ID ${data[i].task_id}) ${data[i].deadline} - ${data[i].code} - ${data[i].note}\n`;
+            result += `(ID ${data[i].task_id}) ${data[i].deadline} - ${data[i].type} - ${data[i].code} - ${data[i].note}\n`;
         } else {
-            result += `(ID ${data[i].task_id}) ${data[i].deadline} - ${data[i].code}\n`;
+            result += `(ID ${data[i].task_id}) ${data[i].deadline} - ${data[i].type} - ${data[i].code}\n`;
         }
     }
     return result;
