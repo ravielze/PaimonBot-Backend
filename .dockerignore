@@ -1,0 +1,5 @@
+node_modules
+.github
+img
+.env.example
+*.drawio
